@@ -19,7 +19,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/users")
+@RequestMapping({"/api/users", "/users"})
 @RequiredArgsConstructor
 @Validated
 @Tag(name = "User Management", description = "User management APIs for Admin / HR")

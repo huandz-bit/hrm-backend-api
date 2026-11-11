@@ -19,7 +19,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/attachments")
+@RequestMapping({"/api/attachments", "/attachments"})
 @RequiredArgsConstructor
 @Validated
 @Tag(name = "Attachments", description = "File Upload and Attachment management APIs for Task and Project")

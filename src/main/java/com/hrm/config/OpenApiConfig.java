@@ -7,8 +7,11 @@ import io.swagger.v3.oas.models.info.Info;
 import io.swagger.v3.oas.models.info.License;
 import io.swagger.v3.oas.models.security.SecurityRequirement;
 import io.swagger.v3.oas.models.security.SecurityScheme;
+import io.swagger.v3.oas.models.servers.Server;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+
+import java.util.List;
 
 @Configuration
 public class OpenApiConfig {
@@ -19,11 +22,14 @@ public class OpenApiConfig {
     public OpenAPI openAPI() {
         return new OpenAPI()
                 .info(new Info()
-                        .title("Enterprise Work & Project Management APIs")
-                        .description("REST APIs for 3-Tier Work Management (Team - Project - Task) with Matrix Roles, Dependencies, Followers, Activity Logs, and Dashboard")
-                        .version("2.0.0")
-                        .contact(new Contact().name("Development Team"))
+                        .title("Enterprise Work & Project Management APIs (Team - Project - Task)")
+                        .description("REST APIs for 3-Tier Enterprise Management. Supports Authentication, Dashboard, Department, User, Project, Task, HR Scorecards, Email Config, and AI Project Planning. All routes support both /api/... and /... prefixes.")
+                        .version("2.1.0")
+                        .contact(new Contact().name("Backend Development Team").email("contact@hrm-enterprise.com"))
                         .license(new License().name("Apache 2.0")))
+                .servers(List.of(
+                        new Server().url("http://localhost:8080").description("Local Development Server")
+                ))
                 .addSecurityItem(new SecurityRequirement().addList(SECURITY_SCHEME_NAME))
                 .components(new Components()
                         .addSecuritySchemes(SECURITY_SCHEME_NAME,
@@ -32,6 +38,6 @@ public class OpenApiConfig {
                                         .type(SecurityScheme.Type.HTTP)
                                         .scheme("bearer")
                                         .bearerFormat("JWT")
-                                        .description("Enter your JWT Bearer token to authorize requests")));
+                                        .description("Paste your JWT Bearer token here to authenticate all protected requests")));
     }
 }

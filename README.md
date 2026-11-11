@@ -1,6 +1,10 @@
 # Enterprise Work & Project Management Backend (Team - Project - Task)
 
-Hệ thống Backend REST API phục vụ nền tảng Quản lý Công việc & Dự án Doanh nghiệp 3 tầng (**Team – Project – Task**) được thiết kế và hiện thực hóa chính xác theo sơ đồ CSDL ERD (10 bảng) và tài liệu đặc tả nghiệp vụ hệ thống.
+Hệ thống Backend REST API phục vụ nền tảng Quản lý Công việc & Dự án Doanh nghiệp 3 tầng (**Team – Project – Task**) với đầy đủ các API dành cho Frontend: **Xác thực, Dashboard, Phòng ban, Người dùng, Dự án, Thành viên dự án, Công việc (Task), Đánh giá Nhân sự (HR Scorecards), Cấu hình Email, và Trí tuệ nhân tạo (AI)**.
+
+> 💡 **Lưu ý định tuyến cho Frontend**: Tất cả các API đều hỗ trợ song song 2 định dạng đường dẫn:
+> - Có tiền tố: `/api/...` (ví dụ: `/api/auth/login`, `/api/tasks`, `/api/hr/scorecards`)
+> - Không có tiền tố: `/...` (ví dụ: `/auth/login`, `/tasks`, `/hr/scorecards`)
 
 ---
 
@@ -9,39 +13,10 @@ Hệ thống Backend REST API phục vụ nền tảng Quản lý Công việc &
 - **Ngôn ngữ**: Java 17
 - **Framework**: Spring Boot 3.2.5
 - **Cơ sở dữ liệu**: PostgreSQL
-- **ORM**: Spring Data JPA / Hibernate
+- **ORM / Database**: Spring Data JPA / Hibernate
 - **Bảo mật**: Spring Security 6 + JWT (jjwt 0.12.5)
 - **Tài liệu API**: OpenAPI 3 / Swagger UI (`springdoc-openapi`)
-- **Khác**: Lombok, BCrypt Password Hashing, CORS Enabled
-
----
-
-## 📊 Mô Hình 10 Bảng Cơ Sở Dữ Liệu (Chuẩn ERD)
-
-1. **`departments`**: Phòng ban (`id`, `name`, `description`, `manager_id`, `created_at`, `updated_at`)
-2. **`users`**: Người dùng / Nhân viên (`id`, `full_name`, `email`, `password_hash`, `department_id`, `system_role`, `status`, `created_at`, `updated_at`)
-3. **`projects`**: Dự án (`id`, `name`, `description`, `leader_id`, `status`, `start_date`, `end_date`, `created_by`, `created_at`, `updated_at`)
-4. **`project_members`**: Thành viên dự án (`project_id`, `user_id`, `project_role`, `joined_at`)
-5. **`tasks`**: Công việc (`id`, `project_id`, `title`, `description`, `priority`, `status`, `assignee_id`, `created_by`, `deadline`, `created_at`, `updated_at`)
-6. **`task_dependencies`**: Công việc phụ thuộc (`task_id`, `depends_on_task_id`)
-7. **`task_followers`**: Người theo dõi công việc (`task_id`, `user_id`)
-8. **`task_comments`**: Bình luận / trao đổi công việc (`id`, `task_id`, `user_id`, `content`, `created_at`)
-9. **`attachments`**: Tệp đính kèm theo Task/Project (`id`, `entity_type`, `entity_id`, `file_url`, `file_name`, `file_size`, `uploaded_by`, `created_at`)
-10. **`activity_logs`**: Nhật ký hoạt động / Audit trail (`id`, `entity_type`, `entity_id`, `action`, `old_value`, `new_value`, `performed_by`, `created_at`)
-
----
-
-## 🔐 Hệ Thống Phân Quyền Ma Trận (Matrix Permissions)
-
-### 1. Vai trò cấp doanh nghiệp (`system_role`):
-- **`ADMIN`**: Toàn quyền quản trị tài khoản, phòng ban, cấu hình hệ thống.
-- **`MANAGER`**: Quản lý phòng ban (Trưởng phòng), thành viên trong phòng ban và dự án tham gia.
-- **`EMPLOYEE`**: Nhân viên trực thuộc phòng ban.
-
-### 2. Vai trò trong từng dự án (`project_role`):
-- **`PROJECT_LEADER`**: Chịu trách nhiệm tổng thể dự án. Có quyền quản lý toàn bộ Task, bổ nhiệm Project Manager, thêm/xóa thành viên và đóng dự án.
-- **`PROJECT_MANAGER`**: Quản lý và giao Task cho nhân viên **thuộc phòng ban của mình** (nghiệp vụ chống giao chéo ban).
-- **`PROJECT_MEMBER`**: Xem các Task được phân công, thực hiện, cập nhật tiến độ, bình luận và đính kèm tệp.
+- **Khác**: Lombok, BCrypt Password Hashing, CORS Enabled cho mọi domain FE
 
 ---
 
@@ -75,114 +50,194 @@ Hệ thống sẽ tự động tạo bảng và nạp sẵn dữ liệu mẫu (`
 
 ---
 
-## 📡 Danh Sách Toàn Bộ REST APIs Cung Cấp Cho Frontend
+## 📡 Danh Sách Các REST APIs Chi Tiết Cho Frontend
 
 ### 1. Xác thực (Authentication)
-| Method | Endpoint | Mô tả |
-| :--- | :--- | :--- |
-| `POST` | `/api/auth/login` | Đăng nhập lấy Bearer JWT token |
-| `GET` | `/api/auth/me` | Lấy thông tin user đang đăng nhập |
+| Method | Endpoint | Mô tả | Yêu cầu Auth |
+| :--- | :--- | :--- | :--- |
+| `POST` | `/auth/login` hoặc `/api/auth/login` | Đăng nhập lấy Bearer JWT token | ❌ Không |
+| `GET` | `/auth/me` hoặc `/api/auth/me` | Lấy thông tin user hiện tại đang đăng nhập |  Có |
 
-> **Header bắt buộc sau khi đăng nhập**: `Authorization: Bearer <token>`
+**Response Đăng nhập mẫu:**
+```json
+{
+  "success": true,
+  "message": "Login successful",
+  "data": {
+    "token": "eyJhbGciOiJIUzI1NiJ9...",
+    "tokenType": "Bearer",
+    "userId": 1,
+    "fullName": "Admin Hệ Thống",
+    "email": "admin@hrm.com",
+    "systemRole": "ADMIN",
+    "departmentId": 1
+  }
+}
+```
 
----
-
-### 2. Quản lý Người dùng & Nhân sự (`/api/users`)
-| Method | Endpoint | Mô tả |
-| :--- | :--- | :--- |
-| `GET` | `/api/users?page=0&size=10` | Danh sách người dùng (phân trang) |
-| `GET` | `/api/users?departmentId={id}` | Lọc danh sách nhân viên theo phòng ban |
-| `GET` | `/api/users/{id}` | Chi tiết người dùng theo ID |
-| `POST` | `/api/users` | Tạo tài khoản người dùng / nhân viên mới |
-| `PUT` | `/api/users/{id}` | Cập nhật thông tin người dùng |
-| `DELETE`| `/api/users/{id}` | Vô hiệu hóa người dùng (status -> INACTIVE) |
-
----
-
-### 3. Quản lý Phòng ban - Team (`/api/departments`)
-| Method | Endpoint | Mô tả |
-| :--- | :--- | :--- |
-| `GET` | `/api/departments` | Danh sách phòng ban (phân trang) |
-| `GET` | `/api/departments?all=true` | Lấy toàn bộ danh sách phòng ban (cho dropdown FE) |
-| `GET` | `/api/departments/{id}` | Chi tiết phòng ban |
-| `POST` | `/api/departments` | Tạo phòng ban mới (chỉ định manager_id) |
-| `PUT` | `/api/departments/{id}` | Cập nhật phòng ban & trưởng phòng |
-| `DELETE`| `/api/departments/{id}` | Xóa phòng ban |
+> **Header gửi từ Frontend**: `Authorization: Bearer <token>`
 
 ---
 
-### 4. Quản lý Dự án (`/api/projects`)
+### 2. Thống Kê & Báo Cáo (Dashboard)
 | Method | Endpoint | Mô tả |
 | :--- | :--- | :--- |
-| `GET` | `/api/projects` | Danh sách dự án (phân trang, có % tiến độ) |
-| `GET` | `/api/projects?myProjects=true`| Danh sách dự án mà người dùng hiện tại tham gia |
-| `GET` | `/api/projects/{id}` | Chi tiết dự án |
-| `POST` | `/api/projects` | Tạo dự án mới (mặc định gán người tạo làm Leader) |
-| `PUT` | `/api/projects/{id}` | Cập nhật thông tin dự án |
-| `PATCH` | `/api/projects/{id}/close` | **Đóng dự án** (kiểm tra điều kiện không còn task tồn đọng) |
-| `DELETE`| `/api/projects/{id}` | Hủy dự án (status -> CANCELLED) |
+| `GET` | `/dashboard/overview` | Tổng quan số task theo trạng thái, task quá hạn, số dự án active/completed |
+| `GET` | `/dashboard/department-workload` | Báo cáo chi tiết tải công việc theo từng phòng ban và từng nhân viên |
 
 ---
 
-### 5. Thành viên Dự án (`/api/projects/{id}/members`)
+### 3. Quản Lý Phòng Ban (Departments / Teams)
 | Method | Endpoint | Mô tả |
 | :--- | :--- | :--- |
-| `GET` | `/api/projects/{id}/members` | Danh sách thành viên trong dự án |
-| `POST` | `/api/projects/{id}/members` | Thêm thành viên vào dự án (gán role) |
-| `PUT` | `/api/projects/{id}/members/{userId}?projectRole={role}` | Cập nhật vai trò thành viên |
-| `DELETE`| `/api/projects/{id}/members/{userId}` | Xóa thành viên khỏi dự án |
+| `GET` | `/departments?all=true&page=0&size=1000&sort=id,desc` | Danh sách phòng ban (lấy hết hoặc phân trang) |
+| `GET` | `/departments/{id}` | Lấy chi tiết phòng ban |
+| `POST` | `/departments` | Tạo phòng ban mới (`name`, `description`, `managerId`) |
+| `PUT` | `/departments/{id}` | Cập nhật phòng ban & đổi trưởng phòng |
+| `DELETE` | `/departments/{id}` | Xóa phòng ban |
 
 ---
 
-### 6. Quản lý Công việc - Tasks (`/api/tasks`)
+### 4. Quản Lý Người Dùng & Nhân Sự (Users)
 | Method | Endpoint | Mô tả |
 | :--- | :--- | :--- |
-| `GET` | `/api/tasks?projectId={id}` | Lấy danh sách công việc của dự án (phân trang) |
-| `GET` | `/api/tasks?projectId={id}&listOnly=true` | Lấy danh sách task dạng list (cho Board/Gantt) |
-| `GET` | `/api/tasks/my-tasks` | Danh sách công việc được giao cho user hiện tại |
-| `GET` | `/api/tasks/my-following` | Danh sách công việc user hiện tại đang theo dõi |
-| `GET` | `/api/tasks/{id}` | Chi tiết công việc (kèm dependencies & followers) |
-| `POST` | `/api/tasks` | Tạo công việc mới (chống giao task chéo ban cho Manager) |
-| `PUT` | `/api/tasks/{id}` | Cập nhật thông tin công việc |
-| `PATCH` | `/api/tasks/{id}/status` | Cập nhật trạng thái (kiểm tra task phụ thuộc trước khi xong) |
-| `PATCH` | `/api/tasks/{id}/assign` | Chuyển giao công việc (1 Assignee duy nhất) |
-| `POST` | `/api/tasks/{id}/followers/{userId}` | Thêm người theo dõi/hỗ trợ công việc |
-| `DELETE`| `/api/tasks/{id}/followers/{userId}` | Xóa người theo dõi |
-| `POST` | `/api/tasks/{id}/dependencies/{dependsOnTaskId}` | Gán quan hệ phụ thuộc (task này chờ task kia) |
-| `DELETE`| `/api/tasks/{id}/dependencies/{dependsOnTaskId}` | Xóa quan hệ phụ thuộc |
-| `DELETE`| `/api/tasks/{id}` | Xóa công việc |
+| `GET` | `/users?page=0&size=1000&sort=id,desc` | Danh sách nhân sự / người dùng |
+| `GET` | `/users/{id}` | Chi tiết người dùng |
+| `POST` | `/users` | Thêm tài khoản nhân sự mới |
+| `PUT` | `/users/{id}` | Cập nhật thông tin nhân sự |
+| `DELETE` | `/users/{id}` | Vô hiệu hóa tài khoản (`status: INACTIVE`) |
 
 ---
 
-### 7. Thảo luận & Bình luận (`/api/tasks/{taskId}/comments`)
+### 5. Quản Lý Dự Án (Projects)
 | Method | Endpoint | Mô tả |
 | :--- | :--- | :--- |
-| `GET` | `/api/tasks/{taskId}/comments` | Lấy danh sách bình luận trong task |
-| `POST` | `/api/tasks/{taskId}/comments` | Đăng bình luận thảo luận |
-| `DELETE`| `/api/tasks/{taskId}/comments/{commentId}` | Xóa bình luận |
+| `GET` | `/projects?page=0&size=1000&sort=id,desc` | Lấy danh sách dự án (kèm % tiến độ, tổng số task) |
+| `GET` | `/projects?myProjects=true` | Lấy danh sách dự án mà user hiện tại đang tham gia |
+| `GET` | `/projects/{id}` | Chi tiết dự án |
+| `POST` | `/projects` | Tạo dự án mới (người tạo tự động làm Leader) |
+| `PUT` | `/projects/{id}` | Cập nhật thông tin dự án |
+| `PATCH` | `/projects/{id}/close` | Đóng dự án (kiểm tra không còn task chưa xong) |
+| `DELETE` | `/projects/{id}` | Hủy dự án (`status: CANCELLED`) |
 
 ---
 
-### 8. Tệp đính kèm (`/api/attachments`)
+### 6. Thành Viên Dự Án (Project Members)
 | Method | Endpoint | Mô tả |
 | :--- | :--- | :--- |
-| `GET` | `/api/attachments?entityType=TASK&entityId={id}` | Danh sách tệp đính kèm của Task/Project |
-| `POST` | `/api/attachments/upload` (multipart/form-data) | Upload tệp đính kèm |
-| `GET` | `/api/attachments/download/{id}` | Tải xuống tệp đính kèm |
-| `DELETE`| `/api/attachments/{id}` | Xóa tệp đính kèm |
+| `GET` | `/projects/{projectId}/members` | Lấy danh sách thành viên dự án |
+| `POST` | `/projects/{projectId}/members` | Thêm thành viên vào dự án (`userId`, `projectRole`) |
+| `PUT` | `/projects/{projectId}/members/{userId}?projectRole={role}` | Cập nhật vai trò thành viên |
+| `DELETE` | `/projects/{projectId}/members/{userId}` | Xóa thành viên khỏi dự án |
 
 ---
 
-### 9. Nhật ký hoạt động (`/api/activity-logs`)
+### 7. Quản Lý Công Việc (Tasks)
 | Method | Endpoint | Mô tả |
 | :--- | :--- | :--- |
-| `GET` | `/api/activity-logs?entityType=TASK&entityId={id}` | Xem lịch sử thay đổi của Task (ai đổi trạng thái, assignee, deadline) |
-| `GET` | `/api/activity-logs?entityType=PROJECT&entityId={id}`| Dòng thời gian hoạt động của toàn bộ Dự án |
+| `GET` | `/tasks?projectId={projectId}&status={status?}&listOnly=true&page=0&size=1000&sort=id,desc` | Lấy danh sách task của dự án (hỗ trợ Kanban board hoặc dạng bảng) |
+| `GET` | `/tasks/my-tasks` | Lấy các task được giao cho user hiện tại |
+| `GET` | `/tasks/my-following` | Lấy các task user hiện tại đang follow |
+| `GET` | `/tasks/{id}` | Chi tiết task (kèm assignee, dependencies, followers) |
+| `POST` | `/tasks` | Tạo task mới (chống giao chéo ban cho Project Manager) |
+| `PUT` | `/tasks/{id}` | Cập nhật thông tin task |
+| `PATCH` | `/tasks/{taskId}/assign` | Giao hoặc chuyển giao task cho nhân viên khác |
+| `PATCH` | `/tasks/{taskId}/status` | Cập nhật trạng thái task (`TODO`, `IN_PROGRESS`, `REVIEW`, `COMPLETED`) |
+| `POST` | `/tasks/{id}/followers/{userId}` | Thêm follower cho task |
+| `DELETE` | `/tasks/{id}/followers/{userId}` | Xóa follower khỏi task |
+| `POST` | `/tasks/{id}/dependencies/{dependsOnTaskId}` | Gán task phụ thuộc |
+| `DELETE` | `/tasks/{id}/dependencies/{dependsOnTaskId}` | Xóa task phụ thuộc |
+| `DELETE` | `/tasks/{id}` | Xóa task |
 
 ---
 
-### 10. Báo cáo & Thống kê - Dashboard (`/api/dashboard`)
+### 8. Đánh Giá Nhân Sự (HR Scorecards)
 | Method | Endpoint | Mô tả |
 | :--- | :--- | :--- |
-| `GET` | `/api/dashboard/overview` | Tổng quan số lượng Task theo trạng thái, Task quá hạn, dự án đang chạy |
-| `GET` | `/api/dashboard/department-workload` | Báo cáo chi tiết tải công việc theo từng phòng ban và từng nhân viên |
+| `GET` | `/hr/scorecards` hoặc `/api/hr/scorecards` | Lấy bảng đánh giá hiệu suất nhân sự (tổng task, tỉ lệ hoàn thành, task quá hạn, điểm hiệu năng, danh hiệu/badges) |
+| `GET` | `/hr/scorecards?departmentId={id}` | Lọc đánh giá theo phòng ban |
+
+**Dữ liệu trả về mẫu:**
+```json
+{
+  "success": true,
+  "message": "HR scorecards retrieved successfully",
+  "data": [
+    {
+      "userId": 4,
+      "fullName": "Lê Văn Cường (Senior Dev)",
+      "email": "dev1@hrm.com",
+      "departmentId": 1,
+      "departmentName": "Phòng Công nghệ Thông tin",
+      "systemRole": "EMPLOYEE",
+      "totalAssignedTasks": 4,
+      "completedTasks": 3,
+      "inProgressTasks": 1,
+      "overdueTasks": 0,
+      "completionRate": 75.0,
+      "performanceScore": 87.5,
+      "skillsOrBadges": ["On-Time Delivery", "Key Contributor"]
+    }
+  ]
+}
+```
+
+---
+
+### 9. Cấu Hình Email (Email Configuration)
+| Method | Endpoint | Mô tả |
+| :--- | :--- | :--- |
+| `GET` | `/email-config` hoặc `/api/email-config` | Lấy cấu hình SMTP email của hệ thống |
+| `PUT` | `/email-config` hoặc `/api/email-config` | Cập nhật cấu hình SMTP email & cài đặt nhắc việc |
+
+**Body cập nhật mẫu (`PUT /email-config`):**
+```json
+{
+  "smtpHost": "smtp.gmail.com",
+  "smtpPort": 587,
+  "senderEmail": "notifications@hrm-enterprise.com",
+  "senderName": "HRM System Notification",
+  "username": "notifications@hrm-enterprise.com",
+  "password": "app-password-here",
+  "enableSsl": false,
+  "enableTls": true,
+  "taskNotificationEnabled": true,
+  "deadlineReminderEnabled": true
+}
+```
+
+---
+
+### 10. Trí Tuệ Nhân Tạo (AI Project Planning)
+| Method | Endpoint | Mô tả |
+| :--- | :--- | :--- |
+| `POST` | `/ai/project-plan` hoặc `/api/ai/project-plan` | Phân tích tự động & lập kế hoạch dự án chi tiết bằng AI |
+
+**Body yêu cầu mẫu (`POST /ai/project-plan`):**
+```json
+{
+  "projectName": "Xây dựng cổng thanh toán điện tử",
+  "description": "Tích hợp cổng thanh toán VNPay và Momo cho ứng dụng thương mại điện tử",
+  "estimatedDurationDays": 45,
+  "availableRoles": ["Project Leader", "Backend Developer", "Frontend Developer", "QA Engineer"]
+}
+```
+
+**Dữ liệu AI sinh ra trả về:**
+- `phases`: Các giai đoạn (Khảo sát, Phát triển, Testing, Triển khai) kèm số ngày.
+- `suggestedTasks`: Danh sách các đầu việc gợi ý kèm độ ưu tiên, vai trò thực hiện và quan hệ phụ thuộc.
+- `potentialRisks`: Đánh giá các rủi ro tiềm ẩn của dự án.
+- `recommendedRoles`: Đề xuất nhân sự cho dự án.
+
+---
+
+### 11. Thảo Luận & Tệp Đính Kèm (Comments & Attachments)
+| Method | Endpoint | Mô tả |
+| :--- | :--- | :--- |
+| `GET` | `/tasks/{taskId}/comments` | Danh sách bình luận trong task |
+| `POST` | `/tasks/{taskId}/comments` | Thêm bình luận |
+| `DELETE` | `/tasks/{taskId}/comments/{commentId}` | Xóa bình luận |
+| `GET` | `/attachments?entityType=TASK&entityId={id}` | Danh sách tệp đính kèm |
+| `POST` | `/attachments/upload` (multipart/form-data) | Upload tệp đính kèm |
+| `GET` | `/attachments/download/{id}` | Tải file đính kèm |
+| `GET` | `/activity-logs?entityType=TASK&entityId={id}` | Lịch sử thay đổi task |

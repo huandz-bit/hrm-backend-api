@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/activity-logs")
+@RequestMapping({"/api/activity-logs", "/activity-logs"})
 @RequiredArgsConstructor
 @Validated
 @Tag(name = "Activity Logs", description = "Audit trail and activity history for Task and Project")

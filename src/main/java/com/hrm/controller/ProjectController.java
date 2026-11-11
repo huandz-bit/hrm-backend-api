@@ -23,7 +23,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/projects")
+@RequestMapping({"/api/projects", "/projects"})
 @RequiredArgsConstructor
 @Validated
 @Tag(name = "Project Management", description = "Project and Project Member management APIs")

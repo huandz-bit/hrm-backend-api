@@ -18,7 +18,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/tasks/{taskId}/comments")
+@RequestMapping({"/api/tasks/{taskId}/comments", "/tasks/{taskId}/comments"})
 @RequiredArgsConstructor
 @Validated
 @Tag(name = "Task Comments", description = "Task Comments and Discussion APIs")

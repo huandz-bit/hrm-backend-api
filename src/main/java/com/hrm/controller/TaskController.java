@@ -23,7 +23,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/tasks")
+@RequestMapping({"/api/tasks", "/tasks"})
 @RequiredArgsConstructor
 @Validated
 @Tag(name = "Task Management", description = "Core Task APIs (CRUD, assignment, status update, dependencies, followers)")

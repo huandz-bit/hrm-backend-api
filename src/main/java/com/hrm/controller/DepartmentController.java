@@ -19,7 +19,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/departments")
+@RequestMapping({"/api/departments", "/departments"})
 @RequiredArgsConstructor
 @Validated
 @Tag(name = "Department Management", description = "Department (Team) management APIs")
