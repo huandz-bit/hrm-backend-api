@@ -31,6 +31,8 @@ public class TaskRequest {
 
     private Long assigneeId;
 
+    private LocalDateTime startDate;
+
     private LocalDateTime deadline;
 
     private Set<Long> dependencyTaskIds;

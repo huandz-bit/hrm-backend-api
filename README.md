@@ -241,3 +241,55 @@ Hệ thống sẽ tự động tạo bảng và nạp sẵn dữ liệu mẫu (`
 | `POST` | `/attachments/upload` (multipart/form-data) | Upload tệp đính kèm |
 | `GET` | `/attachments/download/{id}` | Tải file đính kèm |
 | `GET` | `/activity-logs?entityType=TASK&entityId={id}` | Lịch sử thay đổi task |
+
+---
+
+### 12. Hồ Sơ Nhân Sự Chi Tiết (Employee Profiles)
+Hỗ trợ quản lý hồ sơ nhân sự mở rộng (JSONB arrays & object) liên kết 1–1 với tài khoản người dùng (`users`).
+
+| Method | Endpoint | Mô tả | Phân quyền |
+| :--- | :--- | :--- | :--- |
+| `GET` | `/api/employee-profiles/me` | Lấy hồ sơ của user hiện tại | ADMIN, MANAGER, EMPLOYEE |
+| `PUT` | `/api/employee-profiles/me` | Cập nhật hồ sơ của user hiện tại (upsert) | ADMIN, MANAGER, EMPLOYEE |
+| `GET` | `/api/employee-profiles/{userId}` | Xem hồ sơ của người khác theo ID | Chỉ ADMIN (hoặc chính user đó) |
+| `PUT` | `/api/employee-profiles/{userId}` | Cập nhật hồ sơ người khác theo ID | Chỉ ADMIN (hoặc chính user đó) |
+
+**Cấu trúc Request Body mẫu (`PUT /api/employee-profiles/me`):**
+```json
+{
+  "avatarUrl": "https://example.com/avatar.jpg",
+  "phone": "0987654321",
+  "dateOfBirth": "1995-08-15",
+  "gender": "MALE",
+  "address": "Hà Nội, Việt Nam",
+  "skills": ["Java", "Spring Boot", "PostgreSQL", "React"],
+  "educations": [
+    {
+      "school": "Đại học Bách Khoa",
+      "degree": "Kỹ sư Công nghệ thông tin",
+      "startYear": 2013,
+      "endYear": 2018
+    }
+  ],
+  "certifications": [
+    {
+      "name": "AWS Certified Solutions Architect",
+      "year": 2023,
+      "issuer": "Amazon Web Services"
+    }
+  ],
+  "languages": [
+    { "language": "Tiếng Việt", "level": "Bản ngữ" },
+    { "language": "Tiếng Anh", "level": "TOEIC 850" }
+  ],
+  "notes": {
+    "biography": "Senior Software Engineer với 6 năm kinh nghiệm phát triển hệ thống doanh nghiệp.",
+    "emergencyContact": {
+      "name": "Nguyễn Văn B",
+      "relationship": "Anh trai",
+      "phone": "0912345678"
+    }
+  }
+}
+```
+

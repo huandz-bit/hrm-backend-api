@@ -64,8 +64,10 @@ CREATE TABLE IF NOT EXISTS tasks (
     description VARCHAR(2000),
     priority VARCHAR(50) NOT NULL DEFAULT 'MEDIUM', -- LOW, MEDIUM, HIGH, URGENT
     status VARCHAR(50) NOT NULL DEFAULT 'TODO', -- TODO, IN_PROGRESS, REVIEW, COMPLETED, CANCELLED
+    status_note VARCHAR(2000),
     assignee_id BIGINT, -- Exactly 1 assignee at a time
     created_by BIGINT NOT NULL,
+    start_date TIMESTAMP,
     deadline TIMESTAMP,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,

@@ -20,11 +20,13 @@ public class TaskResponse {
     private String description;
     private String priority;
     private String status;
+    private String statusNote;
     private Long assigneeId;
     private String assigneeName;
     private String assigneeEmail;
     private Long createdById;
     private String createdByName;
+    private LocalDateTime startDate;
     private LocalDateTime deadline;
     private boolean isOverdue;
     private List<TaskSimpleResponse> dependencies;

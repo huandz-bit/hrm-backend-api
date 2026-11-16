@@ -22,6 +22,7 @@ public class UserPrincipal implements UserDetails {
     private String fullName;
     private Long departmentId;
     private String systemRole;
+    private String status;
     private Collection<? extends GrantedAuthority> authorities;
 
     public static UserPrincipal create(User user) {
@@ -35,6 +36,7 @@ public class UserPrincipal implements UserDetails {
                 .fullName(user.getFullName())
                 .departmentId(user.getDepartment() != null ? user.getDepartment().getId() : null)
                 .systemRole(user.getSystemRole())
+                .status(user.getStatus())
                 .authorities(List.of(new SimpleGrantedAuthority(roleAuthority)))
                 .build();
     }
@@ -61,6 +63,6 @@ public class UserPrincipal implements UserDetails {
 
     @Override
     public boolean isEnabled() {
-        return true;
+        return "ACTIVE".equalsIgnoreCase(status);
     }
 }

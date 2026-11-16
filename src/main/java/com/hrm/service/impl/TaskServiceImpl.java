@@ -106,6 +106,7 @@ public class TaskServiceImpl implements TaskService {
                 .status(request.getStatus() != null ? request.getStatus() : "TODO")
                 .assignee(assignee)
                 .createdBy(creator)
+                .startDate(request.getStartDate())
                 .deadline(request.getDeadline())
                 .dependencies(dependencies)
                 .followers(followers)
@@ -131,6 +132,9 @@ public class TaskServiceImpl implements TaskService {
         task.setDescription(request.getDescription());
         if (request.getPriority() != null) {
             task.setPriority(request.getPriority());
+        }
+        if (request.getStartDate() != null) {
+            task.setStartDate(request.getStartDate());
         }
         if (request.getDeadline() != null) {
             String oldDeadline = task.getDeadline() != null ? task.getDeadline().toString() : "None";
@@ -170,6 +174,13 @@ public class TaskServiceImpl implements TaskService {
         }
 
         String oldStatus = task.getStatus();
+        if ("REVIEW".equalsIgnoreCase(oldStatus) && "IN_PROGRESS".equalsIgnoreCase(request.getStatus())
+                && (request.getNote() == null || request.getNote().isBlank())) {
+            throw new BadRequestException("Cần nhập lý do từ chối công việc.");
+        }
+        if (request.getNote() != null && !request.getNote().isBlank()) {
+            task.setStatusNote(request.getNote().trim());
+        }
         task.setStatus(request.getStatus());
         task = taskRepository.save(task);
 
@@ -331,11 +342,13 @@ public class TaskServiceImpl implements TaskService {
                 .description(task.getDescription())
                 .priority(task.getPriority())
                 .status(task.getStatus())
+                .statusNote(task.getStatusNote())
                 .assigneeId(task.getAssignee() != null ? task.getAssignee().getId() : null)
                 .assigneeName(task.getAssignee() != null ? task.getAssignee().getFullName() : null)
                 .assigneeEmail(task.getAssignee() != null ? task.getAssignee().getEmail() : null)
                 .createdById(task.getCreatedBy() != null ? task.getCreatedBy().getId() : null)
                 .createdByName(task.getCreatedBy() != null ? task.getCreatedBy().getFullName() : null)
+                .startDate(task.getStartDate())
                 .deadline(task.getDeadline())
                 .isOverdue(isOverdue)
                 .dependencies(depList)

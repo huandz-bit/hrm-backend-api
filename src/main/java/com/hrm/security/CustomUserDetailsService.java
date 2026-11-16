@@ -6,6 +6,7 @@ import com.hrm.repository.UserRepository;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.authentication.DisabledException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -24,7 +25,11 @@ public class CustomUserDetailsService implements UserDetailsService {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found with email: " + email));
 
-        return UserPrincipal.create(user);
+        UserPrincipal principal = UserPrincipal.create(user);
+        if (!principal.isEnabled()) {
+            throw new DisabledException("Bạn không có quyền truy cập !");
+        }
+        return principal;
     }
 
     @Transactional(readOnly = true)

@@ -40,6 +40,9 @@ public class Task {
     @Builder.Default
     private String status = "TODO"; // TODO, IN_PROGRESS, REVIEW, COMPLETED, CANCELLED
 
+    @Column(name = "status_note", length = 2000)
+    private String statusNote;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "assignee_id")
     private User assignee;
@@ -47,6 +50,9 @@ public class Task {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "created_by", nullable = false)
     private User createdBy;
+
+    @Column(name = "start_date")
+    private LocalDateTime startDate;
 
     @Column(name = "deadline")
     private LocalDateTime deadline;

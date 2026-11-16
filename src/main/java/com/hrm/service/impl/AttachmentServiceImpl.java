@@ -124,7 +124,17 @@ public class AttachmentServiceImpl implements AttachmentService {
             Files.deleteIfExists(filePath);
         } catch (IOException ignored) {}
 
+        User user = userRepository.findById(currentUserId)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + currentUserId));
+        ActivityLog log = ActivityLog.builder()
+                .entityType(attachment.getEntityType())
+                .entityId(attachment.getEntityId())
+                .action("ATTACHMENT_DELETED")
+                .oldValue("Deleted file: " + attachment.getFileName())
+                .performedBy(user)
+                .build();
         attachmentRepository.delete(attachment);
+        activityLogRepository.save(log);
     }
 
     private AttachmentResponse mapToResponse(Attachment attachment) {

@@ -13,8 +13,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+// @Component -- Commented out to prevent automatic seed/mock data generation
 @Slf4j
-@Component
 @RequiredArgsConstructor
 public class DataInitializer implements CommandLineRunner {
 
