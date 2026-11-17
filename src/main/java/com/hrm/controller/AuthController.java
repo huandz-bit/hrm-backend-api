@@ -3,6 +3,11 @@ package com.hrm.controller;
 import com.hrm.dto.ApiResponse;
 import com.hrm.dto.auth.LoginRequest;
 import com.hrm.dto.auth.LoginResponse;
+import com.hrm.dto.auth.ChangePasswordRequest;
+import com.hrm.entity.User;
+import com.hrm.exception.BadRequestException;
+import com.hrm.exception.ResourceNotFoundException;
+import com.hrm.repository.UserRepository;
 import com.hrm.security.JwtTokenProvider;
 import com.hrm.security.UserPrincipal;
 import io.swagger.v3.oas.annotations.Operation;
@@ -15,6 +20,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 @RestController
 @RequestMapping({"/api/auth", "/auth"})
@@ -23,11 +29,15 @@ public class AuthController {
 
     private final AuthenticationManager authenticationManager;
     private final JwtTokenProvider jwtTokenProvider;
+    private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
 
     public AuthController(AuthenticationManager authenticationManager,
-                          JwtTokenProvider jwtTokenProvider) {
+                          JwtTokenProvider jwtTokenProvider, UserRepository userRepository, PasswordEncoder passwordEncoder) {
         this.authenticationManager = authenticationManager;
         this.jwtTokenProvider = jwtTokenProvider;
+        this.userRepository = userRepository;
+        this.passwordEncoder = passwordEncoder;
     }
 
     @PostMapping("/login")
@@ -70,5 +80,16 @@ public class AuthController {
                 .build();
 
         return ResponseEntity.ok(ApiResponse.success("User profile retrieved successfully", response));
+    }
+
+    @PostMapping("/change-password")
+    @Operation(summary = "Change current user's password")
+    public ResponseEntity<ApiResponse<Void>> changePassword(@Valid @RequestBody ChangePasswordRequest request, @AuthenticationPrincipal UserPrincipal userPrincipal) {
+        User user = userRepository.findById(userPrincipal.getId()).orElseThrow(() -> new ResourceNotFoundException("User not found"));
+        if (!passwordEncoder.matches(request.getCurrentPassword(), user.getPasswordHash())) throw new BadRequestException("Mật khẩu cũ không chính xác.");
+        if (passwordEncoder.matches(request.getNewPassword(), user.getPasswordHash())) throw new BadRequestException("Mật khẩu mới phải khác mật khẩu hiện tại.");
+        user.setPasswordHash(passwordEncoder.encode(request.getNewPassword()));
+        userRepository.save(user);
+        return ResponseEntity.ok(ApiResponse.success("Đã đổi mật khẩu thành công.", null));
     }
 }

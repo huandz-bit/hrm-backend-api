@@ -130,3 +130,27 @@ CREATE TABLE IF NOT EXISTS activity_logs (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT fk_log_user FOREIGN KEY (performed_by) REFERENCES users(id) ON DELETE CASCADE
 );
+
+-- 11. NOTIFICATIONS
+CREATE TABLE IF NOT EXISTS notifications (
+    id BIGSERIAL PRIMARY KEY,
+    recipient_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    type VARCHAR(60) NOT NULL,
+    title VARCHAR(255) NOT NULL,
+    message VARCHAR(1000) NOT NULL,
+    link VARCHAR(255),
+    read_at TIMESTAMP,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- 12. PROFILE CHANGE REQUESTS
+CREATE TABLE IF NOT EXISTS profile_change_requests (
+    id BIGSERIAL PRIMARY KEY,
+    requester_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    status VARCHAR(20) NOT NULL DEFAULT 'PENDING',
+    requested_data JSONB NOT NULL DEFAULT '{}'::jsonb,
+    review_note VARCHAR(1000),
+    reviewed_by BIGINT REFERENCES users(id) ON DELETE SET NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    reviewed_at TIMESTAMP
+);

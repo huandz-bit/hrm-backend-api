@@ -3,6 +3,7 @@ package com.hrm.controller;
 import com.hrm.dto.ApiResponse;
 import com.hrm.dto.dashboard.DashboardOverviewResponse;
 import com.hrm.dto.dashboard.DepartmentWorkloadResponse;
+import com.hrm.dto.dashboard.HrDashboardOverviewResponse;
 import com.hrm.service.DashboardService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -36,5 +37,12 @@ public class DashboardController {
     public ResponseEntity<ApiResponse<List<DepartmentWorkloadResponse>>> getDepartmentWorkload() {
         List<DepartmentWorkloadResponse> list = dashboardService.getDepartmentWorkload();
         return ResponseEntity.ok(ApiResponse.success("Department workload retrieved successfully", list));
+    }
+
+    @GetMapping("/hr-overview")
+    @Operation(summary = "Get people dashboard snapshot")
+    public ResponseEntity<ApiResponse<HrDashboardOverviewResponse>> getHrOverview() {
+        HrDashboardOverviewResponse response = dashboardService.getHrOverview();
+        return ResponseEntity.ok(ApiResponse.success("HR dashboard overview retrieved successfully", response));
     }
 }

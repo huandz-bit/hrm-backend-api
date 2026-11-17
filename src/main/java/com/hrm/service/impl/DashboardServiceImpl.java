@@ -2,6 +2,9 @@ package com.hrm.service.impl;
 
 import com.hrm.dto.dashboard.DashboardOverviewResponse;
 import com.hrm.dto.dashboard.DepartmentWorkloadResponse;
+import com.hrm.dto.dashboard.HrDashboardOverviewResponse;
+import com.hrm.dto.department.DepartmentResponse;
+import com.hrm.dto.user.UserResponse;
 import com.hrm.entity.Department;
 import com.hrm.entity.Task;
 import com.hrm.entity.User;
@@ -113,5 +116,35 @@ public class DashboardServiceImpl implements DashboardService {
         }
 
         return result;
+    }
+
+    @Override
+    public HrDashboardOverviewResponse getHrOverview() {
+        List<UserResponse> users = userRepository.findAll().stream()
+                .map(user -> UserResponse.builder()
+                        .id(user.getId())
+                        .fullName(user.getFullName())
+                        .email(user.getEmail())
+                        .departmentId(user.getDepartment() == null ? null : user.getDepartment().getId())
+                        .departmentName(user.getDepartment() == null ? null : user.getDepartment().getName())
+                        .systemRole(user.getSystemRole())
+                        .status(user.getStatus())
+                        .createdAt(user.getCreatedAt())
+                        .updatedAt(user.getUpdatedAt())
+                        .build())
+                .toList();
+        List<DepartmentResponse> departments = departmentRepository.findAll().stream()
+                .map(department -> DepartmentResponse.builder()
+                        .id(department.getId())
+                        .name(department.getName())
+                        .description(department.getDescription())
+                        .managerId(department.getManager() == null ? null : department.getManager().getId())
+                        .managerName(department.getManager() == null ? null : department.getManager().getFullName())
+                        .memberCount((int) users.stream().filter(user -> Objects.equals(user.getDepartmentId(), department.getId())).count())
+                        .createdAt(department.getCreatedAt())
+                        .updatedAt(department.getUpdatedAt())
+                        .build())
+                .toList();
+        return HrDashboardOverviewResponse.builder().users(users).departments(departments).build();
     }
 }

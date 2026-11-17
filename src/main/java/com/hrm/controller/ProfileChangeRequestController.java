@@ -1,0 +1,9 @@
+package com.hrm.controller;
+import com.hrm.dto.ApiResponse; import com.hrm.dto.profile.*; import com.hrm.security.UserPrincipal; import com.hrm.service.ProfileChangeRequestService; import lombok.RequiredArgsConstructor; import org.springframework.http.*; import org.springframework.security.core.annotation.AuthenticationPrincipal; import org.springframework.web.bind.annotation.*; import java.util.*;
+@RestController @RequestMapping({"/api/profile-change-requests","/profile-change-requests"}) @RequiredArgsConstructor public class ProfileChangeRequestController {
+ private final ProfileChangeRequestService service;
+ @PostMapping public ResponseEntity<ApiResponse<ProfileChangeRequestResponse>> submit(@RequestBody EmployeeProfileRequest request,@AuthenticationPrincipal UserPrincipal me){return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success("Yêu cầu chỉnh sửa đã được gửi để phê duyệt.",service.submit(request,me)));}
+ @GetMapping("/pending") public ResponseEntity<ApiResponse<List<ProfileChangeRequestResponse>>> pending(@AuthenticationPrincipal UserPrincipal me){return ResponseEntity.ok(ApiResponse.success("Pending requests retrieved",service.pending(me)));}
+ @GetMapping public ResponseEntity<ApiResponse<List<ProfileChangeRequestResponse>>> all(@AuthenticationPrincipal UserPrincipal me){return ResponseEntity.ok(ApiResponse.success("Profile change requests retrieved",service.all(me)));}
+ @PatchMapping("/{id}/review") public ResponseEntity<ApiResponse<ProfileChangeRequestResponse>> review(@PathVariable Long id,@RequestBody Map<String,Object> body,@AuthenticationPrincipal UserPrincipal me){boolean approved=Boolean.TRUE.equals(body.get("approved")); return ResponseEntity.ok(ApiResponse.success("Request reviewed",service.review(id,approved,(String)body.getOrDefault("note",""),me)));}
+}

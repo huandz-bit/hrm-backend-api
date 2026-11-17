@@ -24,6 +24,8 @@ public class TaskResponse {
     private Long assigneeId;
     private String assigneeName;
     private String assigneeEmail;
+    private Long departmentId;
+    private String departmentName;
     private Long createdById;
     private String createdByName;
     private LocalDateTime startDate;

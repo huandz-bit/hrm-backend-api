@@ -10,6 +10,7 @@ import com.hrm.exception.BadRequestException;
 import com.hrm.exception.ResourceNotFoundException;
 import com.hrm.repository.*;
 import com.hrm.service.TaskService;
+import com.hrm.service.NotificationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -32,6 +33,7 @@ public class TaskServiceImpl implements TaskService {
     private final UserRepository userRepository;
     private final ActivityLogRepository activityLogRepository;
     private final AttachmentRepository attachmentRepository;
+    private final NotificationService notificationService;
 
     @Override
     @Transactional(readOnly = true)
@@ -113,6 +115,7 @@ public class TaskServiceImpl implements TaskService {
                 .build();
 
         task = taskRepository.save(task);
+        if (assignee != null) notificationService.create(assignee.getId(), "TASK_ASSIGNED", "Bạn được giao công việc", "Bạn được giao công việc “" + task.getTitle() + "”.", "/tasks");
 
         // Activity log
         logActivity(task.getId(), "CREATED", null, "Task created with status " + task.getStatus(), creator);
@@ -150,6 +153,7 @@ public class TaskServiceImpl implements TaskService {
             String oldAssigneeName = task.getAssignee() != null ? task.getAssignee().getFullName() : "Unassigned";
             task.setAssignee(newAssignee);
             logActivity(task.getId(), "ASSIGNEE_CHANGED", oldAssigneeName, newAssignee.getFullName(), currentUser);
+            notificationService.create(newAssignee.getId(), "TASK_ASSIGNED", "Bạn được giao công việc", "Bạn được giao công việc “" + task.getTitle() + "”.", "/tasks");
         }
 
         task = taskRepository.save(task);
@@ -186,6 +190,11 @@ public class TaskServiceImpl implements TaskService {
 
         String note = request.getNote() != null ? " (" + request.getNote() + ")" : "";
         logActivity(task.getId(), "STATUS_CHANGED", oldStatus, request.getStatus() + note, currentUser);
+        if (task.getAssignee() != null && !task.getAssignee().getId().equals(currentUserId)) {
+            String type = "COMPLETED".equalsIgnoreCase(request.getStatus()) ? "TASK_APPROVED" : ("IN_PROGRESS".equalsIgnoreCase(request.getStatus()) && "REVIEW".equalsIgnoreCase(oldStatus) ? "TASK_REJECTED" : "TASK_UPDATED");
+            String title = "TASK_APPROVED".equals(type) ? "Công việc đã được phê duyệt" : "TASK_REJECTED".equals(type) ? "Công việc bị từ chối" : "Công việc được cập nhật";
+            notificationService.create(task.getAssignee().getId(), type, title, "Công việc “" + task.getTitle() + "” đã được cập nhật." + note, "/tasks");
+        }
 
         return mapToResponse(task);
     }
@@ -209,6 +218,7 @@ public class TaskServiceImpl implements TaskService {
 
         String note = request.getNote() != null ? " (" + request.getNote() + ")" : "";
         logActivity(task.getId(), "ASSIGNEE_CHANGED", oldAssigneeName, newAssignee.getFullName() + note, currentUser);
+        notificationService.create(newAssignee.getId(), "TASK_ASSIGNED", "Bạn được giao công việc", "Bạn được giao công việc “" + task.getTitle() + "”.", "/tasks");
 
         return mapToResponse(task);
     }
@@ -346,6 +356,10 @@ public class TaskServiceImpl implements TaskService {
                 .assigneeId(task.getAssignee() != null ? task.getAssignee().getId() : null)
                 .assigneeName(task.getAssignee() != null ? task.getAssignee().getFullName() : null)
                 .assigneeEmail(task.getAssignee() != null ? task.getAssignee().getEmail() : null)
+                .departmentId(task.getAssignee() != null && task.getAssignee().getDepartment() != null
+                        ? task.getAssignee().getDepartment().getId() : null)
+                .departmentName(task.getAssignee() != null && task.getAssignee().getDepartment() != null
+                        ? task.getAssignee().getDepartment().getName() : null)
                 .createdById(task.getCreatedBy() != null ? task.getCreatedBy().getId() : null)
                 .createdByName(task.getCreatedBy() != null ? task.getCreatedBy().getFullName() : null)
                 .startDate(task.getStartDate())

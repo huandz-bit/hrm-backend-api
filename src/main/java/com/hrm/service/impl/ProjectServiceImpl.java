@@ -9,6 +9,7 @@ import com.hrm.exception.BadRequestException;
 import com.hrm.exception.ResourceNotFoundException;
 import com.hrm.repository.*;
 import com.hrm.service.ProjectService;
+import com.hrm.service.NotificationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -28,6 +29,7 @@ public class ProjectServiceImpl implements ProjectService {
     private final UserRepository userRepository;
     private final TaskRepository taskRepository;
     private final ActivityLogRepository activityLogRepository;
+    private final NotificationService notificationService;
 
     @Override
     @Transactional(readOnly = true)
@@ -232,6 +234,7 @@ public class ProjectServiceImpl implements ProjectService {
                 .build();
 
         member = projectMemberRepository.save(member);
+        notificationService.create(user.getId(), "PROJECT_ADDED", "Bạn đã được thêm vào dự án", "Bạn đã được thêm vào dự án “" + project.getName() + "”.", "/employee-projects");
         return mapMemberToResponse(member);
     }
 
